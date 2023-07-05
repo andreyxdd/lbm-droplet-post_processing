@@ -72,3 +72,15 @@ class Relations:
       raise Exception("G is undefined")
     
     return self.G * self.R_0 * self.zeta / self.M
+  
+  def compute_Ch_and_Pe_from_zeta_and_tau_g(self, zeta, tau_g):
+    self.set_zeta(zeta)
+    self.set_tau_g(tau_g)
+    self.compute_and_set_mobility()
+    self.compute_and_set_G()
+    self.compute_and_set_mu_c()
+    
+    Ch = self.compute_chan_number()
+    Pe = self.compute_peclet_number()
+    
+    return Ch, Pe
