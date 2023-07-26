@@ -7,12 +7,12 @@ import matplotlib.pyplot as plt
 
 # --- Settings
 round_to = 6 # decimals
-skip_timseries_plot = False
+skip_timseries_plot = True
 plot_timeseries = False
 plot_contour = False
 
 zeta_array = [2, 3, 5, 6]
-mobilities_array = [0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] #, 2, 3]
+mobilities_array = [0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3]
 tau_g_array = [float(round(3*mobility, 3)) for mobility in mobilities_array]
 # ---
 
@@ -22,7 +22,7 @@ os.mkdir('plots_dt')
 
 if __name__ == '__main__':
   r = relations.Relations(
-    Ca = 0.1,
+    Ca = 0.1067,
     sigma_0 = 0.01,
     R_0 = 30,
     Re = 0.0625,
@@ -33,6 +33,7 @@ if __name__ == '__main__':
   D_t = r.compute_analytical_taylor_deformation()  
   print(f"Taylor deformation (analytical solution) = {D_t}")
 
+  min_anal_num_D_t_diff = 1e6 # minimal difference between numerical and analytical values of D_Tt
   heat_map = {}
   for idx_zeta, zeta in enumerate(zeta_array):
     for idx_tau, tau_g in enumerate(tau_g_array):
@@ -49,6 +50,13 @@ if __name__ == '__main__':
 
       # maximum D_T
       max_D_T = max(results_dt)
+      
+      # updating 
+      if abs(D_t-max_D_T) < min_anal_num_D_t_diff:
+        min_Ch = Ch
+        min_Pe = Pe
+        min_anal_num_D_t_diff = abs(D_t-max_D_T)
+        D_T_for_min_diff = max_D_T
       
       # filling heat map
       heat_map[(idx_zeta, idx_tau)] = (Ch_rouned, Pe_rounded, round(max_D_T, round_to))
@@ -77,6 +85,12 @@ if __name__ == '__main__':
           plt.show()
         else:
           fig.savefig(f'./plots_dt/zeta-{zeta}__mobility-{M}.png')
+
+  print(f"D_T when the difference between analytical and numerical is minimal = {D_T_for_min_diff}")
+  print(f"The difference itself: {abs(D_t-D_T_for_min_diff)}")
+  print(f"The relative error: {abs(D_t-D_T_for_min_diff)/D_T_for_min_diff*100}")
+  print(f"Found at Pe = {min_Pe}")
+  print(f"Found at Ch = {min_Ch}")
 
   # --- post-process
   x = []
